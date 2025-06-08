@@ -1,5 +1,4 @@
-
-import React, { useCallback, useState, useMemo } from 'react';
+import React, { useCallback, useState, useMemo, useEffect } from 'react';
 import {
   ReactFlow,
   MiniMap,
@@ -20,7 +19,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card } from '@/components/ui/card';
 import { getLayoutedElements } from '../utils/layoutUtils';
 import { CustomNode } from './CustomNode';
-import { Sparkles, Plus, Trash2, RotateCcw } from 'lucide-react';
+import { useUndoRedo } from '../hooks/useUndoRedo';
+import { Sparkles, Plus, Trash2, RotateCcw, Undo, Redo } from 'lucide-react';
 
 const nodeTypes = {
   custom: CustomNode,
@@ -66,6 +66,22 @@ export const FlowCanvas = () => {
   const [layoutDirection, setLayoutDirection] = useState<'TB' | 'LR' | 'BT' | 'RL'>('TB');
   const [selectedNodes, setSelectedNodes] = useState<string[]>([]);
 
+  const { canUndo, canRedo, undo, redo, saveState, clearHistory } = useUndoRedo(
+    initialNodes,
+    initialEdges,
+    setNodes,
+    setEdges
+  );
+
+  // Save state when nodes or edges change
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      saveState(nodes, edges);
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [nodes, edges, saveState]);
+
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge(params, eds)),
     [setEdges]
@@ -107,7 +123,8 @@ export const FlowCanvas = () => {
     setNodes(initialNodes);
     setEdges(initialEdges);
     setSelectedNodes([]);
-  }, [setNodes, setEdges]);
+    clearHistory();
+  }, [setNodes, setEdges, clearHistory]);
 
   const onSelectionChange = useCallback(({ nodes }: { nodes: Node[] }) => {
     setSelectedNodes(nodes.map((node) => node.id));
@@ -179,6 +196,34 @@ export const FlowCanvas = () => {
                 >
                   <Sparkles className="w-4 h-4 mr-2" />
                   Apply Auto Layout
+                </Button>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-4 bg-card/95 backdrop-blur border border-border">
+            <div className="space-y-3">
+              <h3 className="text-lg font-semibold text-foreground">History Controls</h3>
+              
+              <div className="grid grid-cols-2 gap-2">
+                <Button 
+                  onClick={undo} 
+                  variant="outline" 
+                  size="sm"
+                  disabled={!canUndo}
+                >
+                  <Undo className="w-4 h-4 mr-2" />
+                  Undo
+                </Button>
+                
+                <Button 
+                  onClick={redo} 
+                  variant="outline" 
+                  size="sm"
+                  disabled={!canRedo}
+                >
+                  <Redo className="w-4 h-4 mr-2" />
+                  Redo
                 </Button>
               </div>
             </div>
