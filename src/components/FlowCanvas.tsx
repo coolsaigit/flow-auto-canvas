@@ -1,4 +1,3 @@
-
 import React, { useCallback, useState, useMemo, useEffect } from 'react';
 import {
   ReactFlow,
@@ -23,7 +22,7 @@ import { CustomNode } from './CustomNode';
 import { useUndoRedo } from '../hooks/useUndoRedo';
 import { Sparkles, Plus, Trash2, RotateCcw, Undo, Redo, GitBranch } from 'lucide-react';
 
-interface CustomNodeData {
+interface CustomNodeData extends Record<string, unknown> {
   label: string;
 }
 
@@ -59,10 +58,10 @@ const initialNodes: Node<CustomNodeData>[] = [
 ];
 
 const initialEdges: Edge[] = [
-  { id: 'e1-2', source: '1', target: '2', animated: true, type: 'default' },
-  { id: 'e1-3', source: '1', target: '3', animated: true, type: 'straight' },
-  { id: 'e2-4', source: '2', target: '4', animated: true, type: 'default' },
-  { id: 'e3-4', source: '3', target: '4', animated: true, type: 'straight' },
+  { id: 'e1-2', source: '1', target: '2', animated: true, type: 'smoothstep' },
+  { id: 'e1-3', source: '1', target: '3', animated: true, type: 'smoothstep' },
+  { id: 'e2-4', source: '2', target: '4', animated: true, type: 'smoothstep' },
+  { id: 'e3-4', source: '3', target: '4', animated: true, type: 'smoothstep' },
 ];
 
 export const FlowCanvas = () => {
@@ -155,7 +154,7 @@ export const FlowCanvas = () => {
       if (edge.id === edgeId) {
         return {
           ...edge,
-          type: edge.type === 'straight' ? 'default' : 'straight'
+          type: edge.type === 'smoothstep' ? 'default' : 'smoothstep'
         };
       }
       return edge;
@@ -228,7 +227,7 @@ export const FlowCanvas = () => {
                 </Button>
 
                 <div className="text-sm text-muted-foreground">
-                  💡 Click on any edge to toggle between curved and straight
+                  💡 Click on any edge to toggle between smooth step and curved
                 </div>
               </div>
             </div>
@@ -297,7 +296,7 @@ export const FlowCanvas = () => {
               <div>Nodes: {nodes.length}</div>
               <div>Edges: {edges.length}</div>
               <div>Selected: {selectedNodes.length}</div>
-              <div>Mixed Edge Styles: {edges.filter(e => e.type === 'straight').length} straight, {edges.filter(e => e.type !== 'straight').length} curved</div>
+              <div>Mixed Edge Styles: {edges.filter(e => e.type === 'smoothstep').length} smooth step, {edges.filter(e => e.type !== 'smoothstep').length} curved</div>
             </div>
           </Card>
         </Panel>

@@ -2,7 +2,7 @@
 import dagre from 'dagre';
 import { Node, Edge, Position } from '@xyflow/react';
 
-interface CustomNodeData {
+interface CustomNodeData extends Record<string, unknown> {
   label: string;
 }
 

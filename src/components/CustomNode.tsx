@@ -4,7 +4,7 @@ import { Handle, Position, NodeProps } from '@xyflow/react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
-interface CustomNodeData {
+interface CustomNodeData extends Record<string, unknown> {
   label: string;
 }
 

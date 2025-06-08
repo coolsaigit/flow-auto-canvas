@@ -2,7 +2,7 @@
 import { useState, useCallback } from 'react';
 import { Node, Edge } from '@xyflow/react';
 
-interface CustomNodeData {
+interface CustomNodeData extends Record<string, unknown> {
   label: string;
 }
 
