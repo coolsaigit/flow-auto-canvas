@@ -1,3 +1,4 @@
+
 import React, { useCallback, useState, useMemo, useEffect } from 'react';
 import {
   ReactFlow,
@@ -22,7 +23,7 @@ import { CustomNode } from './CustomNode';
 import { useUndoRedo } from '../hooks/useUndoRedo';
 import { Sparkles, Plus, Trash2, RotateCcw, Undo, Redo, GitBranch } from 'lucide-react';
 
-interface CustomNodeData {
+interface CustomNodeData extends Record<string, unknown> {
   label: string;
 }
 
@@ -58,10 +59,10 @@ const initialNodes: Node<CustomNodeData>[] = [
 ];
 
 const initialEdges: Edge[] = [
-  { id: 'e1-2', source: '1', target: '2', animated: true },
-  { id: 'e1-3', source: '1', target: '3', animated: true },
-  { id: 'e2-4', source: '2', target: '4', animated: true },
-  { id: 'e3-4', source: '3', target: '4', animated: true },
+  { id: 'e1-2', source: '1', target: '2', animated: true, type: 'default' },
+  { id: 'e1-3', source: '1', target: '3', animated: true, type: 'straight' },
+  { id: 'e2-4', source: '2', target: '4', animated: true, type: 'default' },
+  { id: 'e3-4', source: '3', target: '4', animated: true, type: 'straight' },
 ];
 
 export const FlowCanvas = () => {
@@ -69,7 +70,6 @@ export const FlowCanvas = () => {
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [layoutDirection, setLayoutDirection] = useState<'TB' | 'LR' | 'BT' | 'RL'>('TB');
   const [selectedNodes, setSelectedNodes] = useState<string[]>([]);
-  const [edgeStyle, setEdgeStyle] = useState<'curved' | 'straight'>('curved');
 
   const { canUndo, canRedo, undo, redo, saveState, clearHistory } = useUndoRedo(
     initialNodes,
@@ -87,17 +87,16 @@ export const FlowCanvas = () => {
     return () => clearTimeout(timeoutId);
   }, [nodes, edges, saveState]);
 
-  // Update edges with the selected style
+  // Apply consistent styling to edges
   const edgesWithStyle = useMemo(() => {
     return edges.map(edge => ({
       ...edge,
-      type: edgeStyle === 'straight' ? 'straight' : 'default',
       style: {
         ...edge.style,
         strokeWidth: 2,
       }
     }));
-  }, [edges, edgeStyle]);
+  }, [edges]);
 
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge(params, eds)),
@@ -151,9 +150,17 @@ export const FlowCanvas = () => {
     setLayoutDirection(value as 'TB' | 'LR' | 'BT' | 'RL');
   };
 
-  const handleEdgeStyleChange = (value: string) => {
-    setEdgeStyle(value as 'curved' | 'straight');
-  };
+  const toggleEdgeType = useCallback((edgeId: string) => {
+    setEdges((eds) => eds.map((edge) => {
+      if (edge.id === edgeId) {
+        return {
+          ...edge,
+          type: edge.type === 'straight' ? 'default' : 'straight'
+        };
+      }
+      return edge;
+    }));
+  }, [setEdges]);
 
   const proOptions = { hideAttribution: true };
 
@@ -167,6 +174,7 @@ export const FlowCanvas = () => {
         onConnect={onConnect}
         onSelectionChange={onSelectionChange}
         nodeTypes={nodeTypes}
+        onEdgeClick={(event, edge) => toggleEdgeType(edge.id)}
         proOptions={proOptions}
         fitView
         className="bg-background"
@@ -209,21 +217,6 @@ export const FlowCanvas = () => {
                     </SelectContent>
                   </Select>
                 </div>
-
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground mb-2 block">
-                    Edge Style
-                  </label>
-                  <Select value={edgeStyle} onValueChange={handleEdgeStyleChange}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="curved">Curved Edges</SelectItem>
-                      <SelectItem value="straight">Straight Edges</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
                 
                 <Button 
                   onClick={onLayout} 
@@ -233,6 +226,10 @@ export const FlowCanvas = () => {
                   <Sparkles className="w-4 h-4 mr-2" />
                   Apply Auto Layout
                 </Button>
+
+                <div className="text-sm text-muted-foreground">
+                  💡 Click on any edge to toggle between curved and straight
+                </div>
               </div>
             </div>
           </Card>
@@ -300,7 +297,7 @@ export const FlowCanvas = () => {
               <div>Nodes: {nodes.length}</div>
               <div>Edges: {edges.length}</div>
               <div>Selected: {selectedNodes.length}</div>
-              <div>Style: {edgeStyle === 'straight' ? 'Straight' : 'Curved'}</div>
+              <div>Mixed Edge Styles: {edges.filter(e => e.type === 'straight').length} straight, {edges.filter(e => e.type !== 'straight').length} curved</div>
             </div>
           </Card>
         </Panel>
