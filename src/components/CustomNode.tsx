@@ -8,7 +8,7 @@ interface CustomNodeData {
   label: string;
 }
 
-export const CustomNode = memo(({ data, selected }: NodeProps<CustomNodeData>) => {
+export const CustomNode = memo(({ data, selected }: NodeProps<{ label: string }>) => {
   return (
     <Card 
       className={`
