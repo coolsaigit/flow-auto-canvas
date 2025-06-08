@@ -2,6 +2,10 @@
 import dagre from 'dagre';
 import { Node, Edge, Position } from '@xyflow/react';
 
+interface CustomNodeData {
+  label: string;
+}
+
 const dagreGraph = new dagre.graphlib.Graph();
 dagreGraph.setDefaultEdgeLabel(() => ({}));
 
@@ -9,10 +13,10 @@ const nodeWidth = 172;
 const nodeHeight = 36;
 
 export const getLayoutedElements = (
-  nodes: Node[],
+  nodes: Node<CustomNodeData>[],
   edges: Edge[],
   direction = 'TB'
-): { nodes: Node[]; edges: Edge[] } => {
+): { nodes: Node<CustomNodeData>[]; edges: Edge[] } => {
   const isHorizontal = direction === 'LR' || direction === 'RL';
   dagreGraph.setGraph({ rankdir: direction });
 
@@ -45,7 +49,7 @@ export const getLayoutedElements = (
 };
 
 // Alternative layout algorithms for future expansion
-export const getCircularLayout = (nodes: Node[]): Node[] => {
+export const getCircularLayout = (nodes: Node<CustomNodeData>[]): Node<CustomNodeData>[] => {
   const center = { x: 300, y: 300 };
   const radius = 200;
   const angleStep = (2 * Math.PI) / nodes.length;
@@ -59,7 +63,7 @@ export const getCircularLayout = (nodes: Node[]): Node[] => {
   }));
 };
 
-export const getGridLayout = (nodes: Node[], columns = 3): Node[] => {
+export const getGridLayout = (nodes: Node<CustomNodeData>[], columns = 3): Node<CustomNodeData>[] => {
   const spacing = { x: 200, y: 100 };
   const startPosition = { x: 50, y: 50 };
 
