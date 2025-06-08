@@ -23,7 +23,7 @@ import { CustomNode } from './CustomNode';
 import { useUndoRedo } from '../hooks/useUndoRedo';
 import { Sparkles, Plus, Trash2, RotateCcw, Undo, Redo, GitBranch } from 'lucide-react';
 
-interface CustomNodeData extends Record<string, unknown> {
+interface CustomNodeData {
   label: string;
 }
 
