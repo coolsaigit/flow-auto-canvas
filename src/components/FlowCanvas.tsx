@@ -1,3 +1,4 @@
+
 import React, { useCallback, useState, useMemo, useEffect } from 'react';
 import {
   ReactFlow,
@@ -22,15 +23,11 @@ import { CustomNode } from './CustomNode';
 import { useUndoRedo } from '../hooks/useUndoRedo';
 import { Sparkles, Plus, Trash2, RotateCcw, Undo, Redo, GitBranch } from 'lucide-react';
 
-interface CustomNodeData {
-  label: string;
-}
-
 const nodeTypes = {
   custom: CustomNode,
 };
 
-const initialNodes: Node<CustomNodeData>[] = [
+const initialNodes: Node[] = [
   {
     id: '1',
     type: 'custom',
@@ -65,7 +62,7 @@ const initialEdges: Edge[] = [
 ];
 
 export const FlowCanvas = () => {
-  const [nodes, setNodes, onNodesChange] = useNodesState<CustomNodeData>(initialNodes);
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [layoutDirection, setLayoutDirection] = useState<'TB' | 'LR' | 'BT' | 'RL'>('TB');
   const [selectedNodes, setSelectedNodes] = useState<string[]>([]);
@@ -116,7 +113,7 @@ export const FlowCanvas = () => {
   }, [nodes, edges, layoutDirection, setNodes, setEdges]);
 
   const addNode = useCallback(() => {
-    const newNode: Node<CustomNodeData> = {
+    const newNode: Node = {
       id: `${nodes.length + 1}`,
       type: 'custom',
       position: {

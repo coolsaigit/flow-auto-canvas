@@ -2,12 +2,8 @@
 import { useState, useCallback } from 'react';
 import { Node, Edge } from '@xyflow/react';
 
-interface CustomNodeData {
-  label: string;
-}
-
 interface FlowState {
-  nodes: Node<CustomNodeData>[];
+  nodes: Node[];
   edges: Edge[];
 }
 
@@ -16,14 +12,14 @@ interface UseUndoRedoReturn {
   canRedo: boolean;
   undo: () => void;
   redo: () => void;
-  saveState: (nodes: Node<CustomNodeData>[], edges: Edge[]) => void;
+  saveState: (nodes: Node[], edges: Edge[]) => void;
   clearHistory: () => void;
 }
 
 export const useUndoRedo = (
-  initialNodes: Node<CustomNodeData>[],
+  initialNodes: Node[],
   initialEdges: Edge[],
-  setNodes: (nodes: Node<CustomNodeData>[]) => void,
+  setNodes: (nodes: Node[]) => void,
   setEdges: (edges: Edge[]) => void
 ): UseUndoRedoReturn => {
   const [history, setHistory] = useState<FlowState[]>([
@@ -34,7 +30,7 @@ export const useUndoRedo = (
   const canUndo = currentIndex > 0;
   const canRedo = currentIndex < history.length - 1;
 
-  const saveState = useCallback((nodes: Node<CustomNodeData>[], edges: Edge[]) => {
+  const saveState = useCallback((nodes: Node[], edges: Edge[]) => {
     setHistory(prev => {
       const newHistory = prev.slice(0, currentIndex + 1);
       newHistory.push({ nodes, edges });
