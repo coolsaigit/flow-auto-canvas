@@ -4,11 +4,7 @@ import { Handle, Position, NodeProps } from '@xyflow/react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
-interface CustomNodeData {
-  label: string;
-}
-
-export const CustomNode = memo(({ data, selected }: NodeProps<CustomNodeData>) => {
+export const CustomNode = memo(({ data, selected }: NodeProps) => {
   return (
     <Card 
       className={`

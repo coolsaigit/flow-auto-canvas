@@ -1,5 +1,5 @@
 
-import React, { useCallback, useState, useMemo, useEffect } from 'react';
+import React, { useCallback, useState, useMemo } from 'react';
 import {
   ReactFlow,
   MiniMap,
@@ -20,8 +20,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card } from '@/components/ui/card';
 import { getLayoutedElements } from '../utils/layoutUtils';
 import { CustomNode } from './CustomNode';
-import { useUndoRedo } from '../hooks/useUndoRedo';
-import { Sparkles, Plus, Trash2, RotateCcw, Undo, Redo, GitBranch } from 'lucide-react';
+import { Sparkles, Plus, Trash2, RotateCcw } from 'lucide-react';
 
 const nodeTypes = {
   custom: CustomNode,
@@ -66,35 +65,6 @@ export const FlowCanvas = () => {
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [layoutDirection, setLayoutDirection] = useState<'TB' | 'LR' | 'BT' | 'RL'>('TB');
   const [selectedNodes, setSelectedNodes] = useState<string[]>([]);
-  const [edgeStyle, setEdgeStyle] = useState<'curved' | 'straight'>('curved');
-
-  const { canUndo, canRedo, undo, redo, saveState, clearHistory } = useUndoRedo(
-    initialNodes,
-    initialEdges,
-    setNodes,
-    setEdges
-  );
-
-  // Save state when nodes or edges change
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      saveState(nodes, edges);
-    }, 500);
-
-    return () => clearTimeout(timeoutId);
-  }, [nodes, edges, saveState]);
-
-  // Update edges with the selected style
-  const edgesWithStyle = useMemo(() => {
-    return edges.map(edge => ({
-      ...edge,
-      type: edgeStyle === 'straight' ? 'straight' : 'default',
-      style: {
-        ...edge.style,
-        strokeWidth: 2,
-      }
-    }));
-  }, [edges, edgeStyle]);
 
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge(params, eds)),
@@ -137,20 +107,11 @@ export const FlowCanvas = () => {
     setNodes(initialNodes);
     setEdges(initialEdges);
     setSelectedNodes([]);
-    clearHistory();
-  }, [setNodes, setEdges, clearHistory]);
+  }, [setNodes, setEdges]);
 
   const onSelectionChange = useCallback(({ nodes }: { nodes: Node[] }) => {
     setSelectedNodes(nodes.map((node) => node.id));
   }, []);
-
-  const handleLayoutDirectionChange = (value: string) => {
-    setLayoutDirection(value as 'TB' | 'LR' | 'BT' | 'RL');
-  };
-
-  const handleEdgeStyleChange = (value: string) => {
-    setEdgeStyle(value as 'curved' | 'straight');
-  };
 
   const proOptions = { hideAttribution: true };
 
@@ -158,7 +119,7 @@ export const FlowCanvas = () => {
     <div className="w-full h-screen bg-background">
       <ReactFlow
         nodes={nodes}
-        edges={edgesWithStyle}
+        edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
@@ -194,7 +155,7 @@ export const FlowCanvas = () => {
                   <label className="text-sm font-medium text-muted-foreground mb-2 block">
                     Layout Direction
                   </label>
-                  <Select value={layoutDirection} onValueChange={handleLayoutDirectionChange}>
+                  <Select value={layoutDirection} onValueChange={setLayoutDirection}>
                     <SelectTrigger className="w-full">
                       <SelectValue />
                     </SelectTrigger>
@@ -206,21 +167,6 @@ export const FlowCanvas = () => {
                     </SelectContent>
                   </Select>
                 </div>
-
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground mb-2 block">
-                    Edge Style
-                  </label>
-                  <Select value={edgeStyle} onValueChange={handleEdgeStyleChange}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="curved">Curved Edges</SelectItem>
-                      <SelectItem value="straight">Straight Edges</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
                 
                 <Button 
                   onClick={onLayout} 
@@ -229,34 +175,6 @@ export const FlowCanvas = () => {
                 >
                   <Sparkles className="w-4 h-4 mr-2" />
                   Apply Auto Layout
-                </Button>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-4 bg-card/95 backdrop-blur border border-border">
-            <div className="space-y-3">
-              <h3 className="text-lg font-semibold text-foreground">History Controls</h3>
-              
-              <div className="grid grid-cols-2 gap-2">
-                <Button 
-                  onClick={undo} 
-                  variant="outline" 
-                  size="sm"
-                  disabled={!canUndo}
-                >
-                  <Undo className="w-4 h-4 mr-2" />
-                  Undo
-                </Button>
-                
-                <Button 
-                  onClick={redo} 
-                  variant="outline" 
-                  size="sm"
-                  disabled={!canRedo}
-                >
-                  <Redo className="w-4 h-4 mr-2" />
-                  Redo
                 </Button>
               </div>
             </div>
@@ -297,7 +215,6 @@ export const FlowCanvas = () => {
               <div>Nodes: {nodes.length}</div>
               <div>Edges: {edges.length}</div>
               <div>Selected: {selectedNodes.length}</div>
-              <div>Style: {edgeStyle === 'straight' ? 'Straight' : 'Curved'}</div>
             </div>
           </Card>
         </Panel>
