@@ -20,13 +20,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card } from '@/components/ui/card';
 import { getLayoutedElements } from '../utils/layoutUtils';
 import { CustomNode } from './CustomNode';
-import { Sparkles, Plus, Trash2, RotateCcw } from 'lucide-react';
+import { Sparkles, Plus, Trash2, RotateCcw, Shuffle } from 'lucide-react';
+
+interface CustomNodeData {
+  label: string;
+}
 
 const nodeTypes = {
   custom: CustomNode,
 };
 
-const initialNodes: Node[] = [
+const initialNodes: Node<CustomNodeData>[] = [
   {
     id: '1',
     type: 'custom',
@@ -54,10 +58,35 @@ const initialNodes: Node[] = [
 ];
 
 const initialEdges: Edge[] = [
-  { id: 'e1-2', source: '1', target: '2', animated: true },
-  { id: 'e1-3', source: '1', target: '3', animated: true },
-  { id: 'e2-4', source: '2', target: '4', animated: true },
-  { id: 'e3-4', source: '3', target: '4', animated: true },
+  { 
+    id: 'e1-2', 
+    source: '1', 
+    target: '2', 
+    animated: true,
+    type: 'smoothstep'
+  },
+  { 
+    id: 'e1-3', 
+    source: '1', 
+    target: '3', 
+    animated: true,
+    type: 'default'
+  },
+  { 
+    id: 'e2-4', 
+    source: '2', 
+    target: '4', 
+    animated: true,
+    type: 'smoothstep'
+  },
+  { 
+    id: 'e3-4', 
+    source: '3', 
+    target: '4', 
+    animated: true,
+    type: 'default',
+    style: { strokeDasharray: '5,5' }
+  },
 ];
 
 export const FlowCanvas = () => {
@@ -65,10 +94,20 @@ export const FlowCanvas = () => {
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [layoutDirection, setLayoutDirection] = useState<'TB' | 'LR' | 'BT' | 'RL'>('TB');
   const [selectedNodes, setSelectedNodes] = useState<string[]>([]);
+  const [defaultEdgeStyle, setDefaultEdgeStyle] = useState<'default' | 'smoothstep' | 'dotted'>('default');
 
   const onConnect = useCallback(
-    (params: Connection) => setEdges((eds) => addEdge(params, eds)),
-    [setEdges]
+    (params: Connection) => {
+      const newEdge: Edge = {
+        ...params,
+        id: `e${params.source}-${params.target}`,
+        animated: true,
+        type: defaultEdgeStyle === 'dotted' ? 'default' : defaultEdgeStyle,
+        style: defaultEdgeStyle === 'dotted' ? { strokeDasharray: '5,5' } : undefined,
+      };
+      setEdges((eds) => addEdge(newEdge, eds));
+    },
+    [setEdges, defaultEdgeStyle]
   );
 
   const onLayout = useCallback(() => {
@@ -83,7 +122,7 @@ export const FlowCanvas = () => {
   }, [nodes, edges, layoutDirection, setNodes, setEdges]);
 
   const addNode = useCallback(() => {
-    const newNode: Node = {
+    const newNode: Node<CustomNodeData> = {
       id: `${nodes.length + 1}`,
       type: 'custom',
       position: {
@@ -109,12 +148,44 @@ export const FlowCanvas = () => {
     setSelectedNodes([]);
   }, [setNodes, setEdges]);
 
+  const toggleEdgeStyles = useCallback(() => {
+    setEdges((eds) => eds.map((edge) => {
+      const currentType = edge.type || 'default';
+      const currentStyle = edge.style || {};
+      const isDotted = currentStyle.strokeDasharray === '5,5';
+      
+      if (isDotted) {
+        return {
+          ...edge,
+          type: 'smoothstep',
+          style: { ...currentStyle, strokeDasharray: undefined }
+        };
+      } else if (currentType === 'smoothstep') {
+        return {
+          ...edge,
+          type: 'default',
+          style: { ...currentStyle, strokeDasharray: undefined }
+        };
+      } else {
+        return {
+          ...edge,
+          type: 'default',
+          style: { ...currentStyle, strokeDasharray: '5,5' }
+        };
+      }
+    }));
+  }, [setEdges]);
+
   const onSelectionChange = useCallback(({ nodes }: { nodes: Node[] }) => {
     setSelectedNodes(nodes.map((node) => node.id));
   }, []);
 
   const handleLayoutDirectionChange = (value: string) => {
     setLayoutDirection(value as 'TB' | 'LR' | 'BT' | 'RL');
+  };
+
+  const handleDefaultEdgeStyleChange = (value: string) => {
+    setDefaultEdgeStyle(value as 'default' | 'smoothstep' | 'dotted');
   };
 
   const proOptions = { hideAttribution: true };
@@ -179,6 +250,40 @@ export const FlowCanvas = () => {
                 >
                   <Sparkles className="w-4 h-4 mr-2" />
                   Apply Auto Layout
+                </Button>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-4 bg-card/95 backdrop-blur border border-border">
+            <div className="space-y-3">
+              <h3 className="text-lg font-semibold text-foreground">Edge Controls</h3>
+              
+              <div className="space-y-3">
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground mb-2 block">
+                    Default Edge Style
+                  </label>
+                  <Select value={defaultEdgeStyle} onValueChange={handleDefaultEdgeStyleChange}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="default">Curved</SelectItem>
+                      <SelectItem value="smoothstep">Smooth Step</SelectItem>
+                      <SelectItem value="dotted">Dotted</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <Button 
+                  onClick={toggleEdgeStyles} 
+                  variant="outline" 
+                  size="sm"
+                  className="w-full"
+                >
+                  <Shuffle className="w-4 h-4 mr-2" />
+                  Toggle All Edge Styles
                 </Button>
               </div>
             </div>
