@@ -22,7 +22,7 @@ import { getLayoutedElements } from '../utils/layoutUtils';
 import { CustomNode } from './CustomNode';
 import { Sparkles, Plus, Trash2, RotateCcw, Shuffle } from 'lucide-react';
 
-interface CustomNodeData {
+interface CustomNodeData extends Record<string, unknown> {
   label: string;
 }
 
@@ -90,7 +90,7 @@ const initialEdges: Edge[] = [
 ];
 
 export const FlowCanvas = () => {
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [nodes, setNodes, onNodesChange] = useNodesState<CustomNodeData>(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [layoutDirection, setLayoutDirection] = useState<'TB' | 'LR' | 'BT' | 'RL'>('TB');
   const [selectedNodes, setSelectedNodes] = useState<string[]>([]);
@@ -131,7 +131,7 @@ export const FlowCanvas = () => {
       },
       data: { label: `Node ${nodes.length + 1}` },
     };
-    setNodes((nds) => nds.concat(newNode));
+    setNodes((nds) => [...nds, newNode]);
   }, [nodes.length, setNodes]);
 
   const deleteSelectedNodes = useCallback(() => {
