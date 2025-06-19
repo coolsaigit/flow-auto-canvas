@@ -113,6 +113,10 @@ export const FlowCanvas = () => {
     setSelectedNodes(nodes.map((node) => node.id));
   }, []);
 
+  const handleLayoutDirectionChange = (value: string) => {
+    setLayoutDirection(value as 'TB' | 'LR' | 'BT' | 'RL');
+  };
+
   const proOptions = { hideAttribution: true };
 
   return (
@@ -155,7 +159,7 @@ export const FlowCanvas = () => {
                   <label className="text-sm font-medium text-muted-foreground mb-2 block">
                     Layout Direction
                   </label>
-                  <Select value={layoutDirection} onValueChange={setLayoutDirection}>
+                  <Select value={layoutDirection} onValueChange={handleLayoutDirectionChange}>
                     <SelectTrigger className="w-full">
                       <SelectValue />
                     </SelectTrigger>
